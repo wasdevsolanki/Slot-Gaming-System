@@ -1,0 +1,2134 @@
+POINTS
+id        player_id   | machine_id | employee_id | room_id | TOTAL AMOUNT
+-------------------------------------------------------------------------
+1            01           05          98             7       50
+
+
+TIMESOLTS
+
+point_id|  time   |  amount 
+----------------------------------------------
+1      |  10:00:00 |  20
+1      |  11:00:00 |  30
+1      |  12:00:00 |  30
+
+
+
+POINTS
+id        player_id   | machine_id | employee_id | room_id | TOTAL AMOUNT
+-------------------------------------------------------------------------
+1            01           05          98             7       50
+
+
+
+
+
+
+
+
+
+
+@extends('staff.layouts.master')
+@section('title', isset($title) ? $title : 'Home')
+@section('content')
+
+<!-- Start Dashboard List -->
+<div class="row admin-section">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary">Pending Players</div>
+            <div class="card-body">
+                <table id="pendingTable" class="table table-sm table-hover pending-table">
+                    <thead>
+                        <tr>
+                            <th>Id#</th>
+                            <th>Name</th>
+                            <th>Sign In</th>
+                            <th>Points</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+     
+                            @foreach($players as $player)
+                            @if( $player && $player->points->first()->status == 0 ) 
+                            <tr>
+                                <td>{{ $player->code }}</td>
+                                <td>{{ $player->name }}</td>
+                                <td>
+                                    @php
+                                        $checkIn = $player->points->first()->created_at;
+                                    @endphp
+                                    {{ $checkIn->format('j F Y g:i A') }}
+                                </td>
+                                <td>{{ $player->points->first()->amount }}</td>
+                                <td>
+                                    <a href="#" data="{{ $player->id }}" class="viewPlayer">View</a>
+                                </td>
+                            </tr>
+                            @endif
+                            @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mt-2">
+            <div class="card-header bg-primary">Active Players</div>
+            <div class="card-body">
+                <table id="acceptTable" class="table table-sm table-hover success-table">
+                    <thead>
+                        <tr>
+                            <th>Id#</th>
+                            <th>Name</th>
+                            <th>Check In</th>
+                            <th>Points</th>
+                            <th>Machine</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($players as $player)
+                            @foreach ( $player->points as $point )
+
+                        <tr>
+                            <td>{{ $player->code }}</td>
+                            <td>{{ $player->name }}</td>
+                            <td>
+                                @php
+                                    $checkIn = $player->points->first()->created_at;
+                                @endphp
+                                {{ $checkIn->format('j F Y g:i A') }}
+                            </td>
+                            <td>{{ $player->points->first()->amount }}</td>
+                            <td>
+                                @foreach($player->points as $item )
+                                    {{$item->machine->first()->serial}} -
+                                    {{$item->machine->first()->type}}
+                                @endforeach
+                            </td>
+                            <td>
+                                <a href="#"  class=""  data-bs-toggle="modal" data-bs-target="#checkoutModal{{$player->id}}">Ticket</a>
+                                | <a href="#"  class="">Checkout</a>
+                            </td>
+                        </tr>
+
+                        <!-- Modal Point -->
+                        <div class="modal fade" id="checkoutModal{{$player->id}}" tabindex="-1" aria-labelledby="checkoutModal{{$player->id}}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="checkoutModalLabel{{$player->id}}">Ticket</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <form action="{{route('staff.ticket.store')}}" method="post">
+                                            @csrf
+                                            <input type="hidden" name="player_id" value="{{ $player->id }}">
+                                            <input type="hidden" name="point_id" value="{{ $player->points->first()->id }}">
+                                            <div class="row">
+                                                
+                                                <div class="col-md-6 mb-4">
+                                                    <span class="fs-5 fw-semibold mb-0">Player Ticket</span><br>
+                                                    <span>Point Amount * 3 = {{ $player->points->first()->amount * 3 }}</span>
+                                                </div>
+
+                                                <div class="col-md-6 mb-4 d-flex justify-content-end align-items-center">
+                                                    <div class="form-check form-check-reverse">
+                                                        <input class="form-check-input shadow-none" type="checkbox" value="" id="playerContinue">
+                                                        <label class="form-check-label" for="playerContinue">
+                                                            Player Continue
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="col-md-6">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number" class="form-control shadow-none" name="ticket_amount" id="ticketAmountInput" value="{{ $player->points->first()->amount * 3 }}" readonly>
+                                                        <label for="ticketAmountInput">Ticket Amount</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-6 rePointInput d-none">
+                                                    <div class="form-floating mb-3">
+                                                        <input type="number" class="form-control shadow-none" name="repoint" id="AddPointReInput">
+                                                        <label for="AddPointReInput">Add up points</label>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary">Ticket out</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                            @endforeach
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 admin-right">
+        <div class="card w-100">
+            <div class="card-header bg-primary">Details</div>
+            <div class="card-body isDisplay d-none">
+                <div class="row userDetail">
+                    <div class="col-md-12 d-flex justify-content-between align-items-center mb-4">
+                        <strong>Player Information</strong>
+                        <span class="badge p-2 bg-primary userRole">Player</span>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-center align-items-center p-2 mb-3">
+                        <img class="rounded userProfile" src="https://rb.gy/hky7xt" alt="" width="100">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Name
+                                <span class="userName">------</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Points Bonus
+                                <span class="userBonus">------</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form action="{{ route('staff.point.checkin') }}" method="post">
+                        @csrf
+                        <input type="hidden" name="player_id" class="playerId" value="">
+
+                        <div class="col-md-12">
+                            <select class="playerSelect2" name="machine" style="width: 100%" required>
+                                @foreach ($machines as $machine)
+                                <option value="{{ $machine->id }}">{{ $machine->type }} -- {{  $machine->serial }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-12 d-flex justify-content-center">
+                            <button type="submit" class="btn btn-primary mt-3 w-100">Check In</button>
+                        </div>
+
+                    </form>
+                        
+                </div>
+            </div>
+            <div class="card-body noDisplay d-flex justify-content-center align-items-center text-secondary display-6">
+                No Display
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@push('post_script')
+<script>
+$(document).ready(function () {
+
+    $('#playerContinue').change(function(){
+        if($(this).is(':checked')) {
+            $('.rePointInput').removeClass('d-none');
+            $('.rePointInput').addClass('d-block');
+        } else {
+            $('.rePointInput').removeClass('d-block');
+            $('.rePointInput').addClass('d-none');
+        }
+    });
+
+    // In your Javascript (external .js resource or <script> tag)
+    $('.playerSelect2').select2({
+        width: 'resolve',
+        theme: "classic",
+        placeholder: 'Select an option',
+    });
+
+    $('#pendingTable, #acceptTable').DataTable({
+        responsive: true,
+        pageLength: 6,
+        lengthChange: false
+    });
+
+    $('.viewPlayer').on('click', function(event) {
+        event.preventDefault();
+        const userId = $(this).attr('data');
+        fetchUserDetails(userId);
+    });
+
+    function fetchUserDetails(userId) {
+        
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+        $.ajax({
+            url: '/staff/player/detail/',
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            },
+            data: { id : userId },
+            success: function(response) {
+                
+                $('.isDisplay').removeClass('d-none');
+                $('.noDisplay').addClass('d-none');
+                $('.playerId').val(response.id);
+                
+                $('.userName').text(response.name);
+                $('.userBonus').text(response.bonus);
+                $('.userProfile').attr('src', '/upload/' + response.room_id + '/profile/' + response.profile);
+
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+
+        });
+    }
+
+});
+</script>
+@endpush
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+@extends('admin.layouts.master')
+@section('title', isset($title) ? $title : 'Home')
+@section('content')
+
+    <!-- Start Dashboard List -->
+    <div class="row admin-section h-100">
+        <div class="col-md-8 admin-left h-100">
+            <div class="card h-50">
+                <div class="card-header bg-primary">Pending Players</div>
+                <div class="card-body">
+                    <table id="pendingTable" class="table table-sm table-hover pending-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Sign In</th>
+                            <th>Points</th>
+                            <th>Tickets</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach($player_requests as $player)
+                                <tr>
+                                    <td>{{ $player->code }}</td>
+                                    <td>{{ $player->name }}</td>
+                                    <td>{{ $player->created_at->format('j F Y g:i A') }}</td>
+                                    <td>{{ $player->bonus }}</td>
+                                    <td>0.00</td>
+
+                                    <td>
+                                        @if( $player->status == 0 ) Pending
+                                        @else Approve @endif
+                                    </td>
+                                    <td>
+                                        <a href="#" data="{{ $player->id }}" class="viewPlayer">View</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card h-50">
+                <div class="card-header bg-primary">Active Players</div>
+                <div class="card-body">
+                    <table id="acceptTable" class="table table-sm table-hover success-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Sign In</th>
+                            <th>Points</th>
+                            <th>Tickets</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($players as $player)
+                            @if( $player && $player->points->first()->status == 1 )
+                                <tr>
+                                    <td>{{ $player->code }}</td>
+                                    <td>{{ $player->name }}</td>
+                                    <td>{{ $player->created_at->format('j F Y g:i A') }}</td>
+                                    <td>{{ $player->points->first()->amount }}</td>
+                                    <td>0.00</td>
+                                    <td>
+                                        <a href="#" data="{{ $player->id }}" class="viewPlayer">View</a>
+                                    </td>
+                                </tr>
+                            @endif
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 admin-right">
+            <div class="card w-100">
+                <div class="card-header bg-primary">Staff Details</div>
+                <div class="card-body isDisplay d-none">
+                    <div class="row userDetail">
+                        <div class="col-md-12 d-flex justify-content-between align-items-center mb-4">
+                            <strong>Player Information</strong>
+                            <span class="badge p-2 bg-primary userRole">Player</span>
+                        </div>
+                        <div class="col-md-12 d-flex justify-content-center align-items-center p-2 mb-3">
+                            <img class="rounded userProfile" src="https://rb.gy/hky7xt" alt="" width="100">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Name
+                                    <span class="userName">--------</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Points Bonus
+                                    <span class="userBonus">----</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    SSN
+                                    <span class="userSSN">------------</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Email
+                                    <span class="userEmail">----------</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Player Status
+                                    <span class="userPlayerStatus">----------</span>
+                                </li>
+                            </ul>
+                        </div>
+         
+                    </div>
+                </div>
+                <div class="card-body noDisplay d-flex justify-content-center align-items-center text-secondary display-6">
+                    No Display
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+@push('post_script')
+<script>
+$(document).ready(function () {
+
+    var pageLength = 10;
+    if ($(window).width() < 1600 ) {
+        pageLength = 5;
+    } else if ($(window).width() > 1600 ) {
+        pageLength = 8;
+    } else {
+        pageLength = 6;
+    }
+
+    $('#pendingTable, #acceptTable').DataTable({
+        responsive: true,
+        pageLength: pageLength,
+        lengthChange: false
+    });
+
+    $('.viewPlayer').on('click', function(event) {
+        event.preventDefault();
+        const userId = $(this).attr('data');
+        fetchUserDetails(userId);
+    });
+
+    function fetchUserDetails(userId) {
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+        $.ajax({
+            url: '/admin/player/detail/',
+            method: 'GET',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            },
+            data: { id : userId },
+            success: function(response) {
+                $('.isDisplay').removeClass('d-none');
+                $('.noDisplay').addClass('d-none');
+
+                $('.userName').text(response.name);
+                $('.userEmail').text(response.email);
+                $('.userBonus').text(response.bonus);
+
+                if( response.status == 0 ) {
+                    $('.userPlayerStatus').text("Pending");
+                } else {
+                    $('.userPlayerStatus').text("Approved");
+                }
+                $('.userSSN').text(response.ssn);
+                $('.userProfile').attr('src', '/upload/' + response.room_id + '/profile/' + response.profile);
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+
+        });
+    }
+
+});
+</script>
+@endpush
+@endsection
+
+
+// READING LIVE BKP
+@extends('admin.layouts.master')
+@section('title', isset($title) ? $title : 'Home')
+@section('content')
+
+<div class="row admin-section h-100">
+
+    <div class="col-md-12 mb-3 ">
+        <div class="card">
+
+            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+                Reading
+                <div>
+                    <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#inModel" data-bs-whatever="@mdo"> IN</button>
+                    <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#outModel" data-bs-whatever="@mdo"> OUT</button>
+                     | 
+                    <a href="#" class="btn btn-sm btn-light">Share</a>
+                    <a href="#" class="btn btn-sm btn-light">Download</a>
+                </div>
+            </div>
+
+            <div class="card-body p-3">
+                <table id="readingTable" class="table table-sm table-bordered table-hover w-100 mt-2 mb-0">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>MID#</th>
+                            <th>Date IN - OUT</th>
+                            <th>Type</th>
+                            <th>Factor</th>
+                            <th>Game</th>
+                            <th>Employee</th>
+                            <th>Prev.In</th> 
+                            <th>Prev.Out</th>
+                            <th>Curr.In</th>
+                            <th>Curr.Out</th>
+                            <th>In($)</th>
+                            <th>Out($)</th>
+                            <th>Diff($)</th>
+                            <th>% Out</th>
+                            <th>% Life Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if( $readings  )
+                            @php
+                                $prevInSum = 0;
+                                $prevOutSum = 0;
+                                $currInSum = 0;
+                                $currOutSum = 0;
+                                $inSum = 0;
+                                $outSum = 0;
+                                $diffSum = 0;
+                            @endphp
+
+                            @foreach( $readings as $item )
+                                @php
+                                    $prevIn = Rprev( $item->machines->first()->id ) ? Rprev( $item->machines->first()->id )->in : 0;
+                                    $prevOut = Rprev( $item->machines->first()->id ) ? Rprev( $item->machines->first()->id )->out : 0;
+
+                                    $prevInSum += $prevIn;
+                                    $prevOutSum += $prevOut;
+                                    $currInSum += $item->in;
+                                    $currOutSum += $item->out;
+                                @endphp
+                            <tr>
+                                <td>{{ $item->machines->first()->serial }}</td>
+                                <td>
+
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ Carbon\Carbon::parse($item->in_date)->format('d M Y g:i A') }} 
+                                            <span class="badge text-bg-secondary rounded-pill">IN</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ Carbon\Carbon::parse($item->out_date)->format('d M Y g:i A') }}
+                                            <span class="badge text-bg-secondary rounded-pill">OUT</span>
+                                        </li>
+                                    </ul>
+
+                                </td>
+                                <td>{{ $item->machines->first()->type }}</td>
+                                <td>{{ allsetting('factor') }}</td>
+                                <td>{{ $item->machines->first()->game }}</td>
+                                <td> - </td>
+                                <td>{{ $prevIn }}</td>
+                                <td>{{ $prevOut }}</td>
+                                <td>{{ $item->in }}</td>
+                                <td>{{ $item->out }}</td>
+                                <td>
+                                    @php
+                                    $In = $item->in - $prevIn;
+                                    $inSum += $In;
+                                    @endphp
+                                    {{ $In }}
+                                </td>
+                                <td>
+                                    @php
+                                    $Out = $item->out - $prevOut;
+                                    $outSum += $Out;
+                                    @endphp
+                                    {{ $Out }}
+                                </td>
+                                <td>
+                                    @php
+                                    $diff = $In - $Out;
+                                    $diffSum += $diff;
+                                    @endphp
+                                    {{ $diff }}
+                                </td>
+                                <td>{{ number_format(($Out / $In * 100), 2) }}</td>
+                                <td>
+                                    {{   number_format( ( ($prevOut + $item->out) / ($item->in + $prevIn) * 100 ), 2)  }}
+                                </td>
+                            </tr>
+                            @endforeach
+                        @endif
+                    </tbody>
+
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ $prevInSum }}</td>
+                            <td>{{ $prevOutSum }}</td>
+                            <td>{{ $currInSum }}</td>
+                            <td>{{ $currOutSum }}</td>
+                            <td>{{ $inSum }}</td>
+                            <td>{{ $outSum }}</td>
+                            <td>{{ $diffSum }}</td>
+                            <td>
+                                @if( $outSum && $inSum )
+                                {{ number_format(($outSum / $inSum * 100), 2) }}
+                                @endif
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card h-100">
+            <div class="card-header bg-primary">Reading Session</div>
+            <div class="card-body">
+
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5 admin-right ">
+        <div class="card w-100">
+            <div class="card-header bg-primary">Settings</div>
+            <div class="card-body">
+                
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 admin-right ">
+        <div class="card w-100">
+            <div class="card-header bg-primary">Total</div>
+            <div class="card-body p-0 ">
+                <table class="table table-bordered mb-0">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Type</th>
+                            <th>IN $</th>
+                            <th>OUT $</th>
+                            <th>Diff</th>
+                            <th>% Lifeout</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $prevInSum = 0;
+                            $prevOutSum = 0;
+                            $currInSum = 0;
+                            $currOutSum = 0;
+                            $inSum = 0;
+                            $outSum = 0;
+                            $diffSum = 0;
+                        @endphp
+                        @foreach( $machines as $machine )
+                            @php
+                                $prevIn  = Rprev( $machine->id ) ? Rprev( $machine->id )->in : 0;
+                                $prevOut = Rprev( $machine->id ) ? Rprev( $machine->id )->out : 0;
+
+                                $currIn  = Rcurr( $machine->id ) ? Rcurr( $machine->id )->in : 0;
+                                $currOut = Rcurr( $machine->id ) ? Rcurr( $machine->id )->out : 0;
+
+                                $prevInSum  += $prevIn;
+                                $prevOutSum += $prevOut;
+
+                                $currInSum += $currIn;
+                                $currOutSum += $currOut;
+
+                                $In = $currIn - $prevIn;                                  
+                                $Out = $currOut - $prevOut;
+                                $diff = $In - $Out;
+                            @endphp
+                        <tr>
+                            <td>{{ $machine->type }}</td>
+                            <td>{{ $In }}</td>
+                            <td>{{ $Out }}</td>
+                            <td>{{ $diff }}</td>
+                            <td>
+                            @php
+                                $gval = 0;
+                                if ($currOut) {
+                                    $gval = ($prevOut + $currOut) / ($currIn + $prevOut) * 100;
+                                }
+                            @endphp
+                            {{ number_format($gval, 2) }}
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<!-- Model Reading In Start -->
+<div class="modal fade" id="inModel" tabindex="-1" aria-labelledby="inModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title fs-5" id="inModelLabel">Reading (IN)</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.reading.in') }}" method="POST" id="formIn">
+            @csrf
+            <input type="hidden" name="in_date" id="inDate">
+            <div class="modal-body">
+
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="inputMachine"><i class="lab la-codiepie"></i></label>
+                    <select class="form-select" id="inputMachine" name="machine">
+                        @foreach ($machines as $machine)
+                            <option value="{{ $machine->id }}">{{ $machine->serial }} -- {{ $machine->type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="input-group flex-nowrap mb-3">
+                    <span class="input-group-text" id="In"><i class="las la-arrow-down"></i></span>
+                    <input type="number" class="form-control" placeholder="Enter Reading In" aria-label="In" aria-describedby="In" name="in">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default border" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add Reading IN</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+<!-- Model End -->
+
+<!-- Model Reading In Start -->
+<div class="modal fade" id="outModel" tabindex="-1" aria-labelledby="outModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title fs-5" id="outModelLabel">Reading (OUT)</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.reading.out') }}" method="POST" id="formOut">
+            @csrf
+            <input type="hidden" name="out_date" id="outDate">
+            <div class="modal-body">
+
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="inputMachine"><i class="lab la-codiepie"></i></label>
+                    <select class="form-select" id="inputMachine" name="machine">
+                        @foreach ($machines as $machine)
+                            <option value="{{ $machine->id }}">{{ $machine->serial }} -- {{ $machine->type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="input-group flex-nowrap mb-3">
+                    <span class="input-group-text" id="Out"><i class="las la-arrow-down"></i></span>
+                    <input type="number" class="form-control" placeholder="Enter Reading Out" aria-label="Out" aria-describedby="Out" name="out">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default border" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add Reading OUT</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+<!-- Model End -->
+
+@push('post_script')
+<script>
+$(document).ready(function () {
+
+    $('#readingTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        lengthChange: true,
+    });
+
+    $('#formIn').submit(function(event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        // Set the value of the hidden input field
+        $('#inDate').val(formattedDateTime);
+
+        // Submit the form
+        $(this).unbind('submit').submit();
+    });
+
+    $('#formOut').submit(function(event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        // Set the value of the hidden input field
+        $('#outDate').val(formattedDateTime);
+
+        // Submit the form
+        $(this).unbind('submit').submit();
+    });
+   
+});
+</script>
+@endpush
+@endsection
+
+
+
+Entries Table
+
+employee_id admin_id cash reciever_id note room_id 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+READING 16 May 2024
+
+@extends('admin.layouts.master')
+@section('title', isset($title) ? $title : 'Home')
+@section('content')
+@push('post_css')
+<style>
+    .wrapper {
+        /* height: 117vh; */
+        height: auto;
+    }
+</style>
+@endpush
+
+<div class="row admin-section h-100">
+
+    <div class="col-md-12 mb-3 ">
+        <div class="card w-100 h-100">
+
+            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+                Reading
+                <div class="d-flex">
+                    <!-- <button type="button" class="btn btn-sm btn-light mx-1" data-bs-toggle="modal" data-bs-target="#inModel" data-bs-whatever="@mdo"> IN</button> -->
+                    <!-- <button type="button" class="btn btn-sm btn-light mx-1" data-bs-toggle="modal" data-bs-target="#outModel" data-bs-whatever="@mdo"> OUT</button> -->
+                     <!-- |  -->
+                    <form action="{{ route('admin.pdf.reading') }}" method="POST" id="pdfForm">
+                        @csrf
+                        <input type="hidden" name="time" value="" id="pdfInput">
+                        <button type="submit" class="btn btn-sm btn-light pdfbtn">Download PDF</button>
+                    </form>
+                    <!-- <a href="{{ route('admin.pdf.reading') }}" class="btn btn-sm btn-light">Download PDF</a> -->
+                </div>
+            </div>
+
+            <div class="card-body p-3" style="height: 450px;">
+                <table id="readingTable" class="table table-sm table-bordered table-hover w-100 mt-2 mb-0">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>MID#</th>
+                            <th>Type</th>
+                            <th>Factor</th>
+                            <th>Game</th>
+                            <th>Employee</th>
+                            <th>Prev.In</th> 
+                            <th>Prev.Out</th>
+                            <th>Curr.In</th>
+                            <th>Curr.Out</th>
+                            <th>In($)</th>
+                            <th>Out($)</th>
+                            <th>Diff($)</th>
+                            <th>% Out</th>
+                            <th>% Life Out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if( $readings  )
+                            @php
+                                $prevInSum = 0;
+                                $prevOutSum = 0;
+                                $currInSum = 0;
+                                $currOutSum = 0;
+                                $inSum = 0;
+                                $outSum = 0;
+                                $diffSum = 0;
+                            @endphp
+
+                            @foreach( $readings as $item )
+                                @php
+                                    if( $isRange == true ) {
+                                        $prevIn = Rprev( $item->machines->first()->id, $range ) ? Rprev( $item->machines->first()->id, $range )->in : 0;
+                                        $prevOut = Rprev( $item->machines->first()->id, $range ) ? Rprev( $item->machines->first()->id, $range )->out : 0;
+                                    } else {
+                                        $prevIn = Rprev( $item->machines->first()->id, ) ? Rprev( $item->machines->first()->id )->in : 0;
+                                        $prevOut = Rprev( $item->machines->first()->id ) ? Rprev( $item->machines->first()->id )->out : 0;
+                                    }
+
+                                    $prevInSum += $prevIn;
+                                    $prevOutSum += $prevOut;
+                                    $currInSum += $item->in;
+                                    $currOutSum += $item->out;
+                                @endphp
+                                <tr>
+                                    <td>{{ $item->machines->first()->serial }}</td>
+                                    <td>{{ $item->machines->first()->type }}</td>
+                                    <td>{{ allsetting('factor') }}</td>
+                                    <td>{{ $item->machines->first()->game }}</td>
+                                    <td>
+                                        @if( $item->employee_id )
+                                            {{ getStaff($item->employee_id)->name }}
+                                        @elseif( $item->admin_id )
+                                            {{ getAdmin($item->admin_id)->name }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $prevIn }}</td>
+                                    <td>{{ $prevOut }}</td>
+                                    <td>{{ $item->in }}</td>
+                                    <td>{{ $item->out }}</td>
+                                    <td>
+                                        @php
+                                        $In = $item->in - $prevIn;
+                                        $inSum += $In;
+                                        @endphp
+                                        {{ $In }}
+                                    </td>
+                                    <td>
+                                        @php
+                                        $Out = $item->out - $prevOut;
+                                        $outSum += $Out;
+                                        @endphp
+                                        {{ $Out }}
+                                    </td>
+                                    @php
+                                    $diff = $In - $Out;
+                                    $diffSum += $diff;
+                                    @endphp
+                                    <td class="@if($diff < 0) bg-secondary text-light @endif">
+                                        {{ $diff }}
+                                    </td>
+                                    <td>
+                                        @if( $In && $Out )
+                                        {{ number_format(($Out / $In * 100), 2) }} %
+                                        @endif
+                                    </td>
+                                    <td>
+                                        {{ number_format( ( ($prevOut + $item->out) / ($item->in + $prevIn) * 100 ), 2) }} %
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @endif
+                    </tbody>
+
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td></td>
+
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ $prevInSum }}</td>
+                            <td>{{ $prevOutSum }}</td>
+                            <td>{{ $currInSum }}</td>
+                            <td>{{ $currOutSum }}</td>
+                            <td>{{ $inSum }}</td>
+                            <td>{{ $outSum }}</td>
+                            <td>{{ $diffSum }}</td>
+                            <td>
+                                @if( $outSum && $inSum )
+                                {{ number_format(($outSum / $inSum * 100), 2) }} %
+                                @endif
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-primary">Reading Session</div>
+            <div class="card-body">
+
+                <form action="{{ route('admin.reading.list')}}" method="GET">
+                    @csrf
+                    <div class="row p-3">
+                        <div class="col-md-12 mb-3">
+                            <label for="dateRange" class="form-label">Select date for reading</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text" id="dateRange"><i class="las la-calendar"></i></span>
+                                <input type="date" class="form-control" name="date_range" value="{{$range}}" aria-label="date range" max="<?php echo date('Y-m-d'); ?>" aria-describedby="dateRange" required>
+                            </div>
+                        </div>
+                        <div class="col-md-12 d-flex justify-content-center">
+                            <button type="submit" class="btn btn-sm btn-primary p-2 w-100">View Reading</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    {{-- <div class="col-md-5 admin-right "> 
+        <!-- <div class="card w-100">
+            <div class="card-header bg-primary">Settings</div>
+            <div class="card-body">
+                
+            </div>
+        </div> -->
+    </div> --}}
+
+    <div class="col-md-7 admin-right">
+        <div class="card w-100">
+            <div class="card-header bg-primary">Total</div>
+            <div class="card-body p-0 ">
+                <table class="table table-bordered mb-0 h-100">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Type</th>
+                            <th>IN $</th>
+                            <th>OUT $</th>
+                            <th>Diff</th>
+                            <th>% PROFIT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Footer -->
+                        @php
+                        $InSumf = 0;
+                        $OutSumf = 0;
+                        $TotalSumf = 0;
+                        @endphp
+                        <!-- Footer -->
+                        @if( ! $readings->isEmpty() )
+                        @foreach( $machines as $key => $value )
+
+                            @php
+                                $InSumg = 0;
+                                $OutSumg = 0;
+                                $Diffg = 0;
+                                $Totalg = 0;
+
+                                $TotalSumf = 0;
+                            @endphp
+ 
+                            @foreach( $value as $m )
+                                @if( Rcurr($m->id, $range) )
+                                    @php
+                                        if( $isRange == true ) {
+                                            $currIng = Rcurr($m->id, $range) ? Rcurr($m->id, $range)->in : 0;
+                                            $currOutg = Rcurr($m->id, $range) ? Rcurr($m->id, $range)->out : 0;
+                                            
+                                            $prevIng = Rprev($m->id, $range) ? Rprev($m->id, $range)->in : 0;
+                                            $prevOutg = Rprev($m->id, $range) ? Rprev($m->id, $range)->out : 0;
+                                        } else {
+                                            $currIng = Rcurr($m->id) ? Rcurr($m->id)->in : 0;
+                                            $currOutg = Rcurr($m->id) ? Rcurr($m->id)->out : 0;
+                                            
+                                            $prevIng = Rprev($m->id) ? Rprev($m->id)->in : 0;
+                                            $prevOutg = Rprev($m->id) ? Rprev($m->id)->out : 0;
+                                        }
+
+                                        $Ing = $currIng - $prevIng;
+                                        $Outg = $currOutg - $prevOutg;
+                                        
+                                        $InSumg += $Ing;
+                                        $OutSumg += $Outg;
+
+                                        if( $prevIng > 0 && $prevOutg > 0 ) {
+                                            $Totalg = ($prevOutg + $currOutg) / ( $currIng + $prevIng ) * 100;
+                                            $TotalSumf += $Totalg;
+                                        }
+                                    @endphp
+                                @endif
+                            @endforeach
+                            
+                            @php
+                                $InSumf += $InSumg;
+                                $OutSumf += $OutSumg;
+                                // $TotalSumf += $Totalg;
+                            @endphp
+
+                            <tr>
+                                <td>{{ $key }}</td>
+                                <td>
+                                    {{ $InSumg }}
+                                </td>
+                                <td>{{ $OutSumg }}</td>
+                                @php $Diffg = $InSumg - $OutSumg;  @endphp
+                                <td class="@if($Diffg < 0) bg-secondary text-light @endif">
+                                    {{ $Diffg }}
+                                </td>
+                                <td>
+                                    {{ number_format($Totalg, 2) }} %
+                                </td>
+                            </tr>
+ 
+                        @endforeach
+                        @else
+                        <tr>
+                            <td colspan="5">No data available in table</td>
+                        </tr>
+                        @endif
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td>Total</td>
+                            <td>{{ $InSumf }}</td>
+                            <td>{{ $OutSumf }}</td>
+                            <td>{{ $InSumf - $OutSumf }}</td>
+                            <td>
+                                {{ number_format($TotalSumf, 2) }} %
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Model Reading In Start -->
+<div class="modal fade" id="inModel" tabindex="-1" aria-labelledby="inModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title fs-5" id="inModelLabel">Reading (IN)</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.reading.in') }}" method="POST" id="formIn">
+            @csrf
+            <input type="hidden" name="in_date" id="inDate">
+            <div class="modal-body">
+
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="inputMachine"><i class="lab la-codiepie"></i></label>
+                    <select class="form-select" id="inputMachine" name="machine">
+                        @foreach ($all_machines as $machine)
+                            <option value="{{ $machine->id }}">{{ $machine->serial }} -- {{ $machine->type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="input-group flex-nowrap mb-3">
+                    <span class="input-group-text" id="In"><i class="las la-arrow-down"></i></span>
+                    <input type="number" class="form-control" placeholder="Enter Reading In" aria-label="In" aria-describedby="In" name="in">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default border" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add Reading IN</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+<!-- Model End -->
+
+<!-- Model Reading In Start -->
+<div class="modal fade" id="outModel" tabindex="-1" aria-labelledby="outModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title fs-5" id="outModelLabel">Reading (OUT)</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.reading.out') }}" method="POST" id="formOut">
+            @csrf
+            <input type="hidden" name="out_date" id="outDate">
+            <div class="modal-body">
+
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="inputMachine"><i class="lab la-codiepie"></i></label>
+                    <select class="form-select" id="inputMachine" name="machine">
+                        @foreach ($all_machines as $machine)
+                            <option value="{{ $machine->id }}">{{ $machine->serial }} -- {{ $machine->type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="input-group flex-nowrap mb-3">
+                    <span class="input-group-text" id="Out"><i class="las la-arrow-down"></i></span>
+                    <input type="number" class="form-control" placeholder="Enter Reading Out" aria-label="Out" aria-describedby="Out" name="out">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default border" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add Reading OUT</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+<!-- Model End -->
+
+@push('post_script')
+<script>
+$(document).ready(function () {
+
+    $('#readingTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        lengthChange: true,
+    });
+
+    $('#formIn').submit(function(event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        // Set the value of the hidden input field
+        $('#inDate').val(formattedDateTime);
+
+        // Submit the form
+        $(this).unbind('submit').submit();
+    });
+
+    $('#pdfForm').submit(function(event) {
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        $('#pdfInput').val(formattedDateTime);
+        $(this).unbind('submit').submit();
+    });
+
+    $('#formOut').submit(function(event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        // Set the value of the hidden input field
+        $('#outDate').val(formattedDateTime);
+
+        // Submit the form
+        $(this).unbind('submit').submit();
+    });
+   
+});
+</script>
+@endpush
+@endsection
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Carbon;
+use Illuminate\Http\Response;
+use Illuminate\Http\Request;
+use App\Models\Machine;
+use App\Models\Reading;
+use App\Models\Room;
+use Dompdf\Options;
+use Dompdf\Dompdf;
+
+class PDFController extends Controller
+{
+    public function reading(Request $request) {
+
+        $request->validate([
+            'time' => 'required'
+        ]);
+
+        $currentTime = $request->time;
+        $readings = Reading::with(['machines' => function($query) {
+            $query->where('room_id', session('roomId'));
+        }])
+            ->where('room_id', session('roomId'))
+            ->whereDate('in_date', Carbon::today())
+            ->where('out_date', '!=', null)
+            ->get();
+
+        if( $readings->isEmpty() ) {
+            return redirect()->back()->with('error', 'Reading not found !');
+        }
+        
+        $all_machines = Machine::where('room_id', session('roomId'))->get();
+        $machines = Machine::where('room_id', session('roomId'))->get()->groupBy('type');
+
+
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $dompdf = new Dompdf($options);
+    
+
+        // READING VARS
+        $prevInSum = 0;
+        $prevOutSum = 0;
+        $currInSum = 0;
+        $currOutSum = 0;
+        $inSum = 0;
+        $outSum = 0;
+        $diffSum = 0;
+
+        $html = '<html>
+                    <head>
+                        <style>
+                            body {
+                                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+                            }
+                            .readingTable {
+                                width: 100%;
+                                border-collapse: collapse;
+                            }
+                            .totalDiv {
+                                width: 50%;
+                                margin-left: auto;
+                            }
+                            .totalDiv .totalTable {
+                                width: 100%;
+                                border-collapse: collapse;
+                            }
+                            .totalDiv span {
+                                font-weight: bolder;
+                                line-height: 50px;
+                            }
+                            th, td {
+                                border: 1px solid black;
+                                text-align: left;
+                            }
+                            th {
+                                background-color: #e2e3e5;
+                                font-size: 0.8em;
+                                padding: 8px;
+                                text-align:center;
+                                overflow-wrap: anywhere;
+                            }
+                            td {
+                                text-align:center;
+                                font-size: 0.8em;
+                                padding: 5px;
+                                overflow-wrap: anywhere;
+                            }
+                            tfoot td{
+                                background-color: #e2e3e5;
+                                overflow-wrap: anywhere;
+                                text-align:center;
+                                font-weight: bolder;
+                                font-size: 0.8em;
+                                padding: 8px;
+                            }
+                            .top-section {
+                                max-width: 100%;
+                                margin-bottom: 15px;
+                            }
+                            .top-section span strong {
+                                margin-right: 5px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="top-section">
+                            <span><strong>In Reading Date: </strong>'. $currentTime .'</span></br>
+                            <span><strong>Out Reading Date: </strong>'. $currentTime .'</span></br>
+                            <span><strong>Gameroom: </strong>'. room()->name .'</span></br>
+                            <span><strong>Reading Session ID: </strong>1061</span>
+                        </div>
+                        <table class="readingTable" style="margin-bottom:25px;">
+                            <thead>
+                                <tr>
+                                    <th>MID#</th>
+                                    <th>Type</th>
+                                    <th>Factor</th>
+                                    <th>Game</th>
+                                    <th>Employee</th>
+                                    <th>Prev IN</th>
+                                    <th>Prev OUT</th>
+                                    <th>Curr IN</th>
+                                    <th>Curr OUT</th>
+                                    <th>In ($)</th>
+                                    <th>Out ($)</th>
+                                    <th>Diff ($)</th>
+                                    <th>% Out</th>
+                                    <th>% Lifeout</th>
+                                </tr>
+                            </thead>
+                            <tbody>';
+
+                            foreach ($readings as $item) {
+
+                                $prevIn = Rprev( $item->machines->first()->id ) ? Rprev( $item->machines->first()->id )->in : 0;
+                                $prevOut = Rprev( $item->machines->first()->id ) ? Rprev( $item->machines->first()->id )->out : 0;
+
+                                $prevInSum += $prevIn;
+                                $prevOutSum += $prevOut;
+                                $currInSum += $item->in;
+                                $currOutSum += $item->out;
+
+                                $html .= '<tr>';
+
+                                    $html .= '<td>'. $item->machines->first()->serial .'</td>';
+                                    $html .= '<td>'. $item->machines->first()->type .'</td>';
+                                    $html .= '<td>'. allsetting('factor') .'</td>';
+                                    $html .= '<td>'. $item->machines->first()->game .'</td>';
+                                    
+                                    $person = '';
+                                    if( $item->employee_id ) {
+                                        $person = getStaff($item->employee_id)->name;
+                                    } else {
+                                        $person = getAdmin($item->admin_id)->name;
+                                    }
+
+                                    $html .= '<td>'. $person .'</td>';
+                                    $html .= '<td>'. $prevIn .'</td>';
+                                    $html .= '<td>'. $prevOut .'</td>';
+                                    $html .= '<td>'. $item->in .'</td>';
+                                    $html .= '<td>'. $item->out .'</td>';
+
+                                    $In = $item->in - $prevIn;
+                                    $inSum += $In;
+                                    $html .= '<td>'. $In .'</td>';
+
+                                    $Out = $item->out - $prevOut;
+                                    $outSum += $Out;
+                                    $html .= '<td>'. $Out .'</td>';
+
+                                    $diff = $In - $Out;
+                                    $diffSum += $diff;
+                                    $html .= '<td>'. $diff .'</td>';
+
+                                    if( $In && $Out ) {
+                                      $InOut = number_format(($Out / $In * 100), 2) .' %';
+                                      $html .= '<td>'. $InOut .'</td>';
+                                    } else {
+                                        $InOut = 0;
+                                        $html .= '<td>'. $InOut .'%</td>';
+                                    }
+
+                                    if( $prevOut && $prevIn ){
+                                        $html .= '<td>'. number_format( ( ($prevOut / $prevIn) * 100 ), 2) .'%</td>';
+                                    }else {
+                                        $html .= '<td>0%</td>';
+                                    }
+
+                                $html .= '</tr>';
+                            }
+
+                            $html .= '</tbody>';
+
+                            $html .= '<tfoot>
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td>'. $prevInSum .'</td>
+                                                <td>'. $prevOutSum .'</td>
+                                                <td>'. $currInSum .'</td>
+                                                <td>'. $currOutSum .'</td>
+                                                <td>'. $inSum .'</td>
+                                                <td>'. $outSum .'</td>
+                                                <td>'. $diffSum .'</td>';
+
+                                                if( $outSum && $inSum ) { 
+                                                   $html .= '<td>'. number_format(($outSum / $inSum * 100), 2) .' %' .'</td>';
+                                                } else {
+                                                    $html .= '<td></td>';
+                                                }
+
+                                            $html .= '<td></td></tr>
+                                        </tfoot>';
+                            
+
+                        $html .= '</table>';
+
+                        // TOTAL TABLE ---------------------------------
+                        $InSumf = 0;
+                        $OutSumf = 0;
+                        $TotalSumf = 0;
+
+                        $html .= '<div class="totalDiv"><span>Total by Machine Type</span><table class="totalTable">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>In ($)</th>
+                                    <th>Out ($)</th>
+                                    <th>Diff ($)</th>
+                                    <th>% Lifeout</th>
+                                </tr>
+                            </thead>
+                            <tbody>';
+                            
+                            foreach( $machines as $key => $value ){
+
+                                $InSumg = 0;
+                                $OutSumg = 0;
+                                $Diffg = 0;
+                                $Totalg = 0;
+
+                                foreach( $value as $m ) {
+                                    if( Rcurr($m->id) ) {
+                                        $currIng = Rcurr($m->id) ? Rcurr($m->id)->in : 0;
+                                        $currOutg = Rcurr($m->id) ? Rcurr($m->id)->out : 0;
+                                        
+                                        $prevIng = Rprev($m->id) ? Rprev($m->id)->in : 0;
+                                        $prevOutg = Rprev($m->id) ? Rprev($m->id)->out : 0;
+
+                                        $Ing = $currIng - $prevIng;
+                                        $Outg = $currOutg - $prevOutg;
+                                        
+                                        $InSumg += $Ing;
+                                        $OutSumg += $Outg;
+
+                                        if( $prevIng > 0 && $prevOutg > 0 ) {
+                                            // $Totalg = ($prevOutg + $currOutg) / ( $currIng + $prevIng ) * 100;
+                                            $Totalg = $diffSum;
+                                        }
+                                    }
+                                }
+
+                                $InSumf += $InSumg;
+                                $OutSumf += $OutSumg;
+                                $TotalSumf += $Totalg;
+                                $Diffg = $InSumg - $OutSumg;
+
+                                $html .= 
+                                    '<tr>
+                                        <td>'. $key .'</td>
+                                        <td>'. $InSumg .'</td>
+                                        <td>'. $OutSumg .'</td>
+                                        <td>'. $Diffg .'</td>
+                                        <td>'. number_format($Totalg, 2) .'% </td>
+                                    </tr>
+                                    </tbody>';
+                            }
+
+                            $html .= '<tfoot>
+                                            <tr>
+                                                <td>Total</td>
+                                                <td>'. $InSumf .'</td>
+                                                <td>'. $OutSumf .'</td>
+                                                <td>'. $InSumf - $OutSumf .'</td>
+                                                <td>'. number_format($TotalSumf, 2) .'</td>';
+                                            $html .= '</tr>
+                                        </tfoot>';
+                        $html .= '</table></div>';
+    
+                    $html .= '</body>
+                </html>';
+
+    
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+    
+        // return $dompdf->stream($currentTime);
+        $pdf = $dompdf->output();
+
+        return new Response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="document.pdf"'
+        ]);
+    }
+
+    
+
+}
+
+
+
+
+@extends('admin.layouts.master')
+@section('title', isset($title) ? $title : 'Home')
+@section('content')
+@push('post_css')
+<style>
+    .wrapper {
+        /* height: 117vh; */
+        height: auto !important;
+    }
+</style>
+@endpush
+
+<div class="row admin-section h-100">
+
+    <div class="col-md-12 mb-3 h-100">
+        <div class="card w-100 h-100">
+            <div class="card-header bg-primary d-flex justify-content-between align-items-center">
+                Reading
+                <div class="d-flex">
+                    <form action="{{ route('admin.pdf.reading') }}" method="POST" id="pdfForm">
+                        @csrf
+
+                        @if( $range )
+                        <input type="hidden" name="time" value="{{$range}}" id="pdfInput">
+                        @else
+                        <input type="hidden" name="time" value="" id="pdfInput">
+                        @endif
+
+                        <button type="submit" class="btn btn-sm btn-light pdfbtn">Download PDF</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card-body p-3">
+                <table id="readingTable" class="table table-sm table-bordered table-hover w-100 mt-2 mb-0">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>MID#</th>
+                            <th>Type</th>
+                            <th>Factor</th>
+                            <th>Game</th>
+                            <th>Employee</th>
+                            <th>Prev.In</th> 
+                            <th>Prev.Out</th>
+                            <th>Curr.In</th>
+                            <th>Curr.Out</th>
+                            <th>In($)</th>
+                            <th>Out($)</th>
+                            <th>Diff($)</th>
+                            <th>Out %</th>
+                            <th>Life Out %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $prevInSum = 0;
+                            $prevOutSum = 0;
+                            $currInSum = 0;
+                            $currOutSum = 0;
+                            $inSum = 0;
+                            $outSum = 0;
+                            $diffSum = 0;
+                        @endphp
+
+                        @if(! $readings->isEmpty() )
+                            @foreach( $readings as $item )
+                                @php
+                                    if( $isRange == true ) {
+                                        $prevIn = Rprev( $item->machines->first()->id, $range ) ? Rprev( $item->machines->first()->id, $range )->in : 0;
+                                        $prevOut = Rprev( $item->machines->first()->id, $range ) ? Rprev( $item->machines->first()->id, $range )->out : 0;
+                                    } else {
+                                        $prevIn = Rprev( $item->machines->first()->id, ) ? Rprev( $item->machines->first()->id )->in : 0;
+                                        $prevOut = Rprev( $item->machines->first()->id ) ? Rprev( $item->machines->first()->id )->out : 0;
+                                    }
+
+                                    $prevInSum += $prevIn;
+                                    $prevOutSum += $prevOut;
+                                    $currInSum += $item->in;
+                                    $currOutSum += $item->out;
+                                @endphp
+
+                                <tr>
+                                    <td>{{ $item->machines->first()->serial }}</td>
+                                    <td>{{ $item->machines->first()->type }}</td>
+                                    <td>{{ allsetting('factor') }}</td>
+                                    <td>{{ $item->machines->first()->game }}</td>
+                                    <td>
+                                        @if( $item->employee_id )
+                                            {{ getStaff($item->employee_id)->name }}
+                                        @elseif( $item->admin_id )
+                                            {{ getAdmin($item->admin_id)->name }}
+                                        @endif
+                                    </td>
+                                    <td>{{ $prevIn }}</td>
+                                    <td>{{ $prevOut }}</td>
+                                    <td>{{ $item->in }}</td>
+                                    <td>{{ $item->out }}</td>
+                                    <td>
+                                        @php
+                                        $In = $item->in - $prevIn;
+                                        $inSum += $In;
+                                        @endphp
+                                        {{ $In }}
+                                    </td>
+                                    <td>
+                                        @php
+                                        $Out = $item->out - $prevOut;
+                                        $outSum += $Out;
+                                        @endphp
+                                        {{ $Out }}
+                                    </td>
+                                    @php
+                                    $diff = $In - $Out;
+                                    $diffSum += $diff;
+                                    @endphp
+                                    <td class="@if($diff < 0) bg-secondary text-light @endif">
+                                        {{ $diff }}
+                                    </td>
+                                    <td>
+                                        @if( $In && $Out )
+                                        {{ number_format(($Out / $In * 100), 2) }} %
+                                        @else
+                                        0 %
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if( $prevOut && $prevIn )
+                                        {{ number_format( ( ($prevOut / $prevIn) * 100 ), 2) }} %
+                                        @else
+                                        0 %
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            @foreach( $all_machines as $m )
+                            <tr>
+                                <td>{{ $m->serial }}</td>
+                                <td>{{ $m->type }}</td>
+                                <td>{{ allsetting('factor') }}</td>
+                                <td>{{ $m->game }}</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0%</td>
+                            </tr>
+                            @endforeach
+                        @endif
+                    </tbody>
+
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ $prevInSum }}</td>
+                            <td>{{ $prevOutSum }}</td>
+                            <td>{{ $currInSum }}</td>
+                            <td>{{ $currOutSum }}</td>
+                            <td>{{ $inSum }}</td>
+                            <td>{{ $outSum }}</td>
+                            <td>{{ $diffSum }}</td>
+                            <td>
+                                @if( $outSum && $inSum )
+                                {{ number_format(($outSum / $inSum * 100), 2) }} %
+                                @endif
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-primary">Reading Session</div>
+            <div class="card-body">
+
+                <form action="{{ route('admin.reading.list')}}" method="GET">
+                    @csrf
+                    <div class="row p-3">
+                        <div class="col-md-12 mb-3">
+                            <label for="dateRange" class="form-label">Select date for reading</label>
+                            <div class="input-group mb-2">
+                                <span class="input-group-text" id="dateRange"><i class="las la-calendar"></i></span>
+                                <input type="date" class="form-control" name="date_range" value="{{$range}}" aria-label="date range" max="<?php echo date('Y-m-d'); ?>" aria-describedby="dateRange" required>
+                            </div>
+                        </div>
+                        <div class="col-md-12 d-flex justify-content-center">
+                            <button type="submit" class="btn btn-sm btn-primary p-2 w-100">View Reading</button>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7 admin-right">
+        <div class="card w-100">
+            <div class="card-header bg-primary">Total</div>
+            <div class="card-body p-0 ">
+                <table class="table table-bordered mb-0 h-100">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Type</th>
+                            <th>IN $</th>
+                            <th>OUT $</th>
+                            <th>Diff</th>
+                            <th>% PROFIT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
+                            $totalIn = 0;
+                            $totalOut = 0;
+                            $totalDiff = 0;
+                            $totalProfit = 0;
+                        @endphp
+                        @if( count($record) > 0 )
+                            @foreach ($record as $key => $value)
+                                @php
+                                    $profit = ($value['diff'] / $diffSum) * 100;
+                                    $totalIn += $value['in'];
+                                    $totalOut += $value['out'];
+                                    $totalDiff += $value['diff'];
+                                    $totalProfit += $profit;
+                                @endphp
+                                <tr>
+                                    <td>{{ $key }}</td>
+                                    <td>{{ $value['in'] }}</td>
+                                    <td>{{ $value['out'] }}</td>
+                                    <td>{{ $value['diff'] }}</td>
+                                    <td>{{ number_format($profit, 2) }}%</td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td class="text-center p-5 text-secondary" colspan="5">Reading Not Found</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                    <tfoot class="table-secondary">
+                        <tr>
+                            <td></td>
+                            <td>{{ $totalIn }}</td>
+                            <td>{{ $totalOut }}</td>
+                            <td>{{ $totalDiff }}</td>
+                            <td>{{ number_format($totalProfit, 0) }}%</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Model Reading In Start -->
+<div class="modal fade" id="inModel" tabindex="-1" aria-labelledby="inModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title fs-5" id="inModelLabel">Reading (IN)</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.reading.in') }}" method="POST" id="formIn">
+            @csrf
+            <input type="hidden" name="in_date" id="inDate">
+            <div class="modal-body">
+
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="inputMachine"><i class="lab la-codiepie"></i></label>
+                    <select class="form-select" id="inputMachine" name="machine">
+                        @foreach ($all_machines as $machine)
+                            <option value="{{ $machine->id }}">{{ $machine->serial }} -- {{ $machine->type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="input-group flex-nowrap mb-3">
+                    <span class="input-group-text" id="In"><i class="las la-arrow-down"></i></span>
+                    <input type="number" class="form-control" placeholder="Enter Reading In" aria-label="In" aria-describedby="In" name="in">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default border" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add Reading IN</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+<!-- Model End -->
+
+<!-- Model Reading In Start -->
+<div class="modal fade" id="outModel" tabindex="-1" aria-labelledby="outModelLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title fs-5" id="outModelLabel">Reading (OUT)</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{{ route('admin.reading.out') }}" method="POST" id="formOut">
+            @csrf
+            <input type="hidden" name="out_date" id="outDate">
+            <div class="modal-body">
+
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="inputMachine"><i class="lab la-codiepie"></i></label>
+                    <select class="form-select" id="inputMachine" name="machine">
+                        @foreach ($all_machines as $machine)
+                            <option value="{{ $machine->id }}">{{ $machine->serial }} -- {{ $machine->type }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="input-group flex-nowrap mb-3">
+                    <span class="input-group-text" id="Out"><i class="las la-arrow-down"></i></span>
+                    <input type="number" class="form-control" placeholder="Enter Reading Out" aria-label="Out" aria-describedby="Out" name="out">
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default border" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add Reading OUT</button>
+            </div>
+        </form>
+    </div>
+  </div>
+</div>
+<!-- Model End -->
+
+@push('post_script')
+<script>
+$(document).ready(function () {
+
+    $('#readingTable').DataTable({
+        responsive: true,
+        pageLength: 10,
+        lengthChange: true,
+    });
+
+    $('#formIn').submit(function(event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        // Set the value of the hidden input field
+        $('#inDate').val(formattedDateTime);
+
+        // Submit the form
+        $(this).unbind('submit').submit();
+    });
+
+    $('#pdfForm').submit(function(event) {
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        var inputDate = $('#pdfInput').val();
+        if( inputDate == '') {
+            // alert('inputDate');
+            $('#pdfInput').val(formattedDateTime);
+        }
+        $(this).unbind('submit').submit();
+
+    });
+
+    $('#formOut').submit(function(event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Get the current date and time
+        let now = new Date();
+        let year = now.getFullYear();
+        let month = String(now.getMonth() + 1).padStart(2, '0');
+        let date = String(now.getDate()).padStart(2, '0');
+        let hours = String(now.getHours()).padStart(2, '0');
+        let minutes = String(now.getMinutes()).padStart(2, '0');
+        let seconds = String(now.getSeconds()).padStart(2, '0');
+
+        // Create the formatted date and time string
+        let formattedDateTime = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+
+        // Set the value of the hidden input field
+        $('#outDate').val(formattedDateTime);
+
+        // Submit the form
+        $(this).unbind('submit').submit();
+    });
+   
+});
+</script>
+@endpush
+@endsection

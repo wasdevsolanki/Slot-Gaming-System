@@ -1,0 +1,97 @@
+:root {
+    --primary-color: #5F80F8;
+    --grey-color: #373737;
+    --red-color: #DE1E29;
+    --light-color: #F2F4F6;
+    --black-color: #000000;
+    --green-color: #7F9F80;
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--light-color) !important;
+} 
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--light-color);
+}
+a {
+    text-decoration: none !important;
+}
+.btn {
+    border-radius: 0;
+}
+body .main-content {
+    height: 74.5vh;
+    overflow-y: auto;
+}
+header .facelock i {
+    font-size: 20px;
+    color: var(--light-color);
+}
+header .notification i {
+    font-size: 20px;
+}
+header .notification .count {
+    top: 7px;
+}
+header .sub-header {
+    padding: 10px;
+}
+header .sub-header-item {
+    width: 70px;
+    border-radius: 0;
+}
+header .sub-header-item i {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+}
+footer .footer-body {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+footer .footer-body .footer-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card {
+    border-radius: 0 !important;
+}
+.card-header {
+    border-radius: 0 !important;
+}
+.text-primary {
+    color: var(--primary-color);
+}
+
+/* Super Dashboard Pages */
+.page-heading {
+    padding: 8px 0 8px 0;
+}
+.page-heading .page-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.page-heading .page-body .current-page {
+    color: var(--grey-color);
+    font-weight: 600;
+}
+
+.admin-section .admin-right {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+}
+
+
+
+
+/* Super Dashboard Pages */

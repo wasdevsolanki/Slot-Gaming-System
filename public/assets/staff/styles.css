@@ -1,0 +1,248 @@
+:root {
+    --primary-color: #5F80F8;
+    --grey-color: #373737;
+    --red-color: #DE1E29;
+    --light-color: #F2F4F6;
+    --white-color: #FFFFFF;
+    --black-color: #000000;
+    --green-color: #7F9F80;
+    --light-grey-color: #e9ecef;
+}
+
+
+/* LOADER CSS START */
+#preloader {
+    /* background-color: #fff; */
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999999999999999;
+}
+
+#status {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    justify-content: center;
+}
+
+#preloader .loader {
+    width: 50px;
+    height: 50px;
+    border: 10px solid var(--primary-color);
+    border-bottom-color: var(--grey-color);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+} 
+/* LOADER CSS END */
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #ebebeb;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #6d6d6d;
+}
+.btn {
+    border-radius: 0;
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+.bg-primary {
+    background-color: var(--primary-color) !important;
+    color: var(--light-color) !important;
+}
+
+.card-header {
+    background-color: var(--light-grey-color) !important;
+    color: var(--black-color) !important;
+    font-weight: 600;
+}
+.text-primary {
+    color: var(--primary-color);
+} 
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--light-color);
+}
+a {
+    text-decoration: none !important;
+}
+a.btn {
+    text-decoration: none !important;
+}
+header nav {
+    background-color: var(--grey-color);
+}
+header .add-client {
+    margin-right: 25px;
+}
+header .facelock i {
+    font-size: 20px;
+    color: var(--light-color);
+}
+header .notification i {
+    font-size: 20px;
+}
+header .notification .count {
+    top: 7px;
+}
+header .sub-header {
+    padding: 10px;
+}
+header .sub-header-item {
+    width: 85px;
+    border-radius: 0;
+}
+.sub-header-item:hover {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+}
+header .sub-header-item i {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+}
+
+header .dropdown.room {
+    margin-right: 50px;
+}
+header .dropdown.room button {
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+header .dropdown.room button i {
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.wrapper {
+    margin-bottom: 50px;
+    height: 74.5vh;
+    /* overflow-y: auto; */
+}
+
+/* Admin Dashboard Pages */
+.page-heading {
+    padding: 8px 0 8px 0;
+}
+.page-heading .page-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.page-heading .page-body .current-page {
+    color: var(--grey-color);
+    font-weight: 600;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+footer .footer-body {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+footer .footer-body .footer-content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.permission-section {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+}
+
+.admin-section .admin-right {
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+}
+.admin-section .list-group {
+    border-radius: 0;
+}
+.admin-section .list-group .list-group-item a {
+    color: var(--black-color);
+}
+.admin-section .list-group .list-group-item.active {
+    background-color: var(--primary-color);
+}
+.admin-section .list-group .list-group-item.active a {
+    color: var(--light-color);
+}
+.divider {
+    content: "";
+    height: 1px;
+    background-color: #e1e1e1;
+}
+
+.list-group.userList {
+    position: absolute;
+    width: 45%;
+    height: 30vh;
+    overflow-y: hidden;
+}
+.list-group.userList .list-group-item:hover {
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: var(--light-color);
+}
+
+/* .list-group.playerList {
+    position: absolute;
+    width: 100%;
+    height: 30vh;
+    overflow-y: hidden;
+}
+.list-group.playerList .list-group-item:hover {
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: var(--light-color);
+} */
+
+canvas {
+    position: absolute;
+}
+
+.select2-container .select2-selection--single {
+    height: 58px !important; 
+    vertical-align: middle !important;
+    /* Adjust the height as needed */
+}
+
+.select2-selection__arrow{
+    display: none;
+}
+
+.select2-selection__rendered{
+    padding: 15px 10px !important;
+}
